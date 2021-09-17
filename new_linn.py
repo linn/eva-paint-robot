@@ -71,36 +71,37 @@ class LinnTwinRobotApp:
             barcode_toolpath = pickle.load(pkl_file)
 
         while running:
-            barcode = input("\nScan Barcode... (q to quit):")
+            barcode = input("\nScan Barcode... (q to quit, s to stop robots):").lower()
             if barcode == "q":
                 running = False
+            elif barcode == "s":
+                self.eva_pair.stop_toolpath_pair()
+                print("ROBOTS STOPPED")
             elif barcode in barcode_toolpath:
                 toolpath_id = barcode_toolpath.get(barcode)
 
-                """with eva.lock():
-                    eva.control_wait_for_ready()
-                    eva.toolpaths_use_saved(int(toolpath_id))  # EM: Changed
-                    eva.control_home()
-                    eva.control_run(loop=0, mode='automatic')  # EM: Changed"""
+                self.set_left_right_robot_toolpaths()
             else:
                 print("Barcode Unregistered!")
 
     def run(self):
+        # Add a try/except KeyboardInterrupt running loop?
         ass_or_run = input("Do you wish to assign barcodes? (y/n)").lower()
         if ass_or_run == 'y':
             self.assign_barcode()
         elif ass_or_run == 'n':
-            print("")
             self.run_barcode_toolpath()
         else:
             raise ValueError(f"Unexpected input: {ass_or_run}")
 
-    def set_left_right_robot_toolpaths(self):
+    def set_left_right_robot_toolpaths(self) -> list:
+        barcode_toolpaths = []
         for left_right in self.robot_order:
             self.toolpath_list_name(self.robot_order[left_right], left_right)
             toolpath_num = int(input("Enter toolpath number: "))
+            barcode_toolpaths.append(toolpath_num)
             self.input_toolpath_name(self.robot_order[left_right], left_right, toolpath_num)
-
+        return barcode_toolpaths
 
 
 if __name__ == '__main__':
