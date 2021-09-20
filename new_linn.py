@@ -19,6 +19,7 @@ class LinnTwinRobotApp:
         self.robot_order = {'left': self.robot_left, 'right': self.robot_right}
         self.eva_pair = eva_pair.EvaPair(self.robot_left, self.robot_right)
         self.barcode_tp_pkl = "barcode_toolpath.pkl"
+        self.toolpath_db = None
 
     @staticmethod
     def toolpath_list_name(eva: Eva, left_right: str) -> None:
@@ -34,78 +35,75 @@ class LinnTwinRobotApp:
             print(f"{eva.name()['name']} ({left_right}): Setting active toolpath")
             eva.toolpaths_use_saved(toolpath_id)
 
-    def assign_barcode(self):
-        barcode_toolpath: dict = {}
-        barcode = ""
-        toolpath = ""
-        running = True
+    def load_toolpath_db(self) -> dict:
+        with open(self.barcode_tp_pkl, 'rb') as pkl_file:
+            toolpath_db = pickle.load(pkl_file)
+        return toolpath_db
 
-        while running:
-            barcode = None
-            toolpath = ""
+    def update_toolpath_db(self, toolpath_ids: dict) -> None:
+        toolpath_db = self.load_toolpath_db()
+        toolpath_db.update(toolpath_ids)
 
-            while not barcode:
-                barcode = input("\nScan Barcode... (q to quit):")
-                if barcode in barcode_toolpath:
-                    override = input("Barcode already registered. Override? (y/n)")
-                    if override == "n":
-                        barcode = None
-                if barcode == "q":
-                    running = False
+        with open(self.barcode_tp_pkl, 'wb') as db_update:
+            pickle.dump(toolpath_db, db_update)
 
-            while not toolpath:
-                toolpath = input("Input Toolpath ID (l for list):")
-                if toolpath == "l":
-                    print(self.robot_left.toolpaths_list())
-                    toolpath = int(input("Input Tootpath ID:"))
+    def set_pair_toolpath(self, toolpath_dict: dict) -> None:
+        for left_right in self.robot_order:
+            with self.robot_order[left_right].lock():
+                self.robot_order[left_right].toolpaths_use_saved(toolpath_dict[left_right])
 
-            barcode_toolpath[barcode] = toolpath
-        print(barcode_toolpath)
-
-        with open(self.barcode_tp_pkl, "ab") as pkl_file:  # EM: Changed
-            pickle.dump(barcode_toolpath, pkl_file)
-
-    def run_barcode_toolpath(self):
-        running = True
-        with open(self.barcode_tp_pkl, "rb") as pkl_file:
-            barcode_toolpath = pickle.load(pkl_file)
-
-        while running:
-            barcode = input("\nScan Barcode... (q to quit, s to stop robots):").lower()
-            if barcode == "q":
-                running = False
-            elif barcode == "s":
-                self.eva_pair.stop_toolpath_pair()
-                print("ROBOTS STOPPED")
-            elif barcode in barcode_toolpath:
-                toolpath_id = barcode_toolpath.get(barcode)
-
-                self.set_left_right_robot_toolpaths()
-            else:
-                print("Barcode Unregistered!")
-
-    def run(self):
-        # Add a try/except KeyboardInterrupt running loop?
-        ass_or_run = input("Do you wish to assign barcodes? (y/n)").lower()
-        if ass_or_run == 'y':
-            self.assign_barcode()
-        elif ass_or_run == 'n':
-            self.run_barcode_toolpath()
-        else:
-            raise ValueError(f"Unexpected input: {ass_or_run}")
-
-    def set_left_right_robot_toolpaths(self) -> list:
-        barcode_toolpaths = []
+    def set_left_right_robot_toolpaths(self) -> dict:
+        barcode_toolpaths = {'left': None, 'right': None}
         for left_right in self.robot_order:
             self.toolpath_list_name(self.robot_order[left_right], left_right)
             toolpath_num = int(input("Enter toolpath number: "))
-            barcode_toolpaths.append(toolpath_num)
+            barcode_toolpaths.update({left_right: toolpath_num})
             self.input_toolpath_name(self.robot_order[left_right], left_right, toolpath_num)
         return barcode_toolpaths
+
+    def scan_and_run_barcode(self):
+        print("ENTERING OPERATION MODE")
+        while True:
+            scanned_barcode = input("Scan barcode: ")
+            toolpath_db = self.load_toolpath_db()
+
+            if scanned_barcode in toolpath_db:
+                tp_dict = toolpath_db.get(scanned_barcode)
+                self.eva_pair.stop_toolpath_pair()
+                self.set_pair_toolpath(tp_dict)
+                self.eva_pair.run_toolpath_pair()
+            elif scanned_barcode not in toolpath_db:
+                self.assign_barcode(scanned_barcode)
+
+    def assign_barcode(self, scanned_barcode: str = None):
+        if not scanned_barcode:
+            input("Scan barcode: ")
+        toolpath_db = self.load_toolpath_db()
+
+        if scanned_barcode not in toolpath_db:
+            new_barcode = {scanned_barcode: self.set_left_right_robot_toolpaths()}
+            self.update_toolpath_db(new_barcode)
+        if scanned_barcode in toolpath_db:
+            override = input("Toolpath already exists, override? (y/n)").lower()
+            if override == 'y':
+                new_barcode = {scanned_barcode: self.set_left_right_robot_toolpaths()}
+                self.update_toolpath_db(new_barcode)
+            elif override == 'n':
+                print("Ignoring barcode")
+
+    def run(self):
+        while True:
+            ass_or_run = input("Do you wish to assign barcodes? (y/n)").lower()
+            if ass_or_run == 'y':
+                self.assign_barcode()
+            elif ass_or_run == 'n':
+                self.scan_and_run_barcode()
+            else:
+                print(f"Unexpected input: {ass_or_run}")
 
 
 if __name__ == '__main__':
     robot_1_details = {'ip': '10.10.60.175', 'token': '357abe95ba3b3b412a09f765f5395ae533616eb7'}
     robot_2_details = {'ip': '10.10.60.189', 'token': '19a397843a066a8838d62630c88f060db76fd25b'}
     app = LinnTwinRobotApp(robot_1_details, robot_2_details)
-    app.set_left_right_robot_toolpaths()
+    app.run()

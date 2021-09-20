@@ -9,7 +9,10 @@ class EvaPair:
     def check_and_reset_state(self, eva: Eva, recur_count: int = 0) -> bool:
         eva_name = eva.name()['name']
         eva_state = eva.data_snapshot_property('control')['state']
-        if eva_state == RobotState.READY:
+        if eva_state == RobotState.READY.value:
+            return True
+        elif eva_state == RobotState.RUNNING.value:
+            eva.control_stop_loop(wait_for_ready=True)
             return True
         elif eva_state == RobotState.ERROR.value and recur_count < self.reset_attempts:
             print(f"{eva_name}: Attempt number {recur_count + 1} to reset...")
@@ -20,13 +23,15 @@ class EvaPair:
         elif eva_state == RobotState.ERROR.value and recur_count == self.reset_attempts:
             raise EvaError(f"Unable to reset robot: {eva.name}")
 
-    def check_in_ready_state(self, eva) -> bool:
+    @staticmethod
+    def check_in_ready_state(eva: Eva) -> bool:
         eva_name = eva.name()['name']
         eva_state = eva.data_snapshot_property('control')['state']
-        if eva_state == RobotState.READY:
+        if eva_state == RobotState.READY.value:
+            print(f"{eva_name}: READY TO RUN")
             return True
-        print(f"{eva.name()['name']}: READY TO RUN")
-        return True
+        else:
+            return False
 
     def send_home_pair(self) -> None:
         for eva in self.robot_pair:
@@ -41,7 +46,7 @@ class EvaPair:
     def set_active_toolpath(eva: Eva, toolpath_id: int) -> None:
         eva.toolpaths_use_saved(toolpath_id)
 
-    def run_toolpath_pair(self):
+    def run_toolpath_pair(self) -> None:
         for eva in self.robot_pair:
             self.check_in_ready_state(eva)
         for eva in self.robot_pair:

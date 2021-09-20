@@ -1,14 +1,7 @@
-import pickle
+test = {'0001': {'left': 2, 'right': 1}, '0002': {'left': 3, 'right': 4}}
 
-barcode_tp_pkl = "barcode_toolpath.pkl"
+l_r = {'left': None, 'right': None}
 
-barcode = '0003'
-toolpath_lr = [6, 7]
+test.update({'0003': {'left': 4, 'right': 5}})
 
-barcode_toolpath = {barcode: toolpath_lr}
-
-with open(barcode_tp_pkl, "ab") as pkl_file:
-    pickle.dump(barcode_toolpath, pkl_file)
-
-with open(barcode_tp_pkl, "rb") as pkl_file:
-    bc_file = (pickle.load(pkl_file))
+print(test['0003'])
