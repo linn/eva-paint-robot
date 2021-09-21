@@ -1,19 +1,22 @@
+#!/usr/bin/env python3
+""" Supporting module for controlling a pair of robots """
 from evasdk import Eva, RobotState, EvaError
 
 
 class EvaPair:
+    """ Class to support a pair of robots """
     def __init__(self, robot_l: Eva, robot_r: Eva):
         self.robot_pair = [robot_l, robot_r]
         self.reset_attempts = 3
 
-    def check_and_reset_state(self, eva: Eva, recur_count: int = 0) -> bool:
+    def check_and_reset_state(self, eva: Eva, recur_count: int = 0) -> None:
+        """ Checks and resets the state of Eva, must be called under with eva.lock() """
         eva_name = eva.name()['name']
         eva_state = eva.data_snapshot_property('control')['state']
         if eva_state == RobotState.READY.value:
-            return True
+            pass
         elif eva_state == RobotState.RUNNING.value:
             eva.control_stop_loop(wait_for_ready=True)
-            return True
         elif eva_state == RobotState.ERROR.value and recur_count < self.reset_attempts:
             print(f"{eva_name}: Attempt number {recur_count + 1} to reset...")
             eva.control_reset_errors()
@@ -23,18 +26,18 @@ class EvaPair:
         elif eva_state == RobotState.ERROR.value and recur_count == self.reset_attempts:
             raise EvaError(f"Unable to reset robot: {eva.name}")
 
-
     def check_in_ready_state(self, eva: Eva) -> bool:
+        """ Checks whether the robot is in READY state """
         eva_name = eva.name()['name']
         eva_state = eva.data_snapshot_property('control')['state']
         if eva_state == RobotState.READY.value:
             print(f"{eva_name}: READY TO RUN")
-            return True
         else:
             with eva.lock():
                 self.check_and_reset_state(eva)
 
     def send_home_pair(self) -> None:
+        """ Sends both robots to the home position of the toolpath active """
         for eva in self.robot_pair:
             with eva.lock():
                 self.check_and_reset_state(eva)
@@ -43,11 +46,8 @@ class EvaPair:
                 print(f"{eva.name()['name']}: SENDING HOME")
                 eva.control_home(wait_for_ready=True)
 
-    @staticmethod
-    def set_active_toolpath(eva: Eva, toolpath_id: int) -> None:
-        eva.toolpaths_use_saved(toolpath_id)
-
     def run_toolpath_pair(self) -> None:
+        """ Runs both robots """
         for eva in self.robot_pair:
             self.check_in_ready_state(eva)
         for eva in self.robot_pair:
@@ -56,15 +56,9 @@ class EvaPair:
                 eva.control_run(loop=0, wait_for_ready=False, mode='automatic')
 
     def stop_toolpath_pair(self) -> None:
+        """ Stops both robots providing they are running """
         for eva in self.robot_pair:
             eva_state = eva.data_snapshot_property('control')['state']
             if eva_state == RobotState.RUNNING.value:
                 with eva.lock():
                     eva.control_stop_loop(wait_for_ready=True)
-
-
-if __name__ == '__main__':
-    robot_1_eva = Eva('10.10.60.175', '357abe95ba3b3b412a09f765f5395ae533616eb7')
-    robot_2_eva = Eva('10.10.60.189', '19a397843a066a8838d62630c88f060db76fd25b')
-    eva_x2 = EvaPair(robot_1_eva, robot_2_eva)
-    eva_x2.check_and_reset_state(robot_1_eva)
