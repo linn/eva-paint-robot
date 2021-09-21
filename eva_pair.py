@@ -26,7 +26,7 @@ class EvaPair:
         elif eva_state == RobotState.ERROR.value and recur_count == self.reset_attempts:
             raise EvaError(f"Unable to reset robot: {eva.name}")
 
-    def check_in_ready_state(self, eva: Eva) -> bool:
+    def check_in_ready_state(self, eva: Eva) -> None:
         """ Checks whether the robot is in READY state """
         eva_name = eva.name()['name']
         eva_state = eva.data_snapshot_property('control')['state']
