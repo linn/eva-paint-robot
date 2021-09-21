@@ -23,15 +23,16 @@ class EvaPair:
         elif eva_state == RobotState.ERROR.value and recur_count == self.reset_attempts:
             raise EvaError(f"Unable to reset robot: {eva.name}")
 
-    @staticmethod
-    def check_in_ready_state(eva: Eva) -> bool:
+
+    def check_in_ready_state(self, eva: Eva) -> bool:
         eva_name = eva.name()['name']
         eva_state = eva.data_snapshot_property('control')['state']
         if eva_state == RobotState.READY.value:
             print(f"{eva_name}: READY TO RUN")
             return True
         else:
-            return False
+            with eva.lock():
+                self.check_and_reset_state(eva)
 
     def send_home_pair(self) -> None:
         for eva in self.robot_pair:
@@ -56,14 +57,14 @@ class EvaPair:
 
     def stop_toolpath_pair(self) -> None:
         for eva in self.robot_pair:
-            with eva.lock():
-                eva.control_stop_loop(wait_for_ready=True)
+            eva_state = eva.data_snapshot_property('control')['state']
+            if eva_state == RobotState.RUNNING.value:
+                with eva.lock():
+                    eva.control_stop_loop(wait_for_ready=True)
 
 
 if __name__ == '__main__':
     robot_1_eva = Eva('10.10.60.175', '357abe95ba3b3b412a09f765f5395ae533616eb7')
     robot_2_eva = Eva('10.10.60.189', '19a397843a066a8838d62630c88f060db76fd25b')
     eva_x2 = EvaPair(robot_1_eva, robot_2_eva)
-    eva_x2.send_home_pair()
-    eva_x2.run_toolpath_pair()
-    eva_x2.stop_toolpath_pair()
+    eva_x2.check_and_reset_state(robot_1_eva)

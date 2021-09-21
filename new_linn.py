@@ -43,7 +43,6 @@ class LinnTwinRobotApp:
     def update_toolpath_db(self, toolpath_ids: dict) -> None:
         toolpath_db = self.load_toolpath_db()
         toolpath_db.update(toolpath_ids)
-
         with open(self.barcode_tp_pkl, 'wb') as db_update:
             pickle.dump(toolpath_db, db_update)
 
@@ -63,21 +62,26 @@ class LinnTwinRobotApp:
 
     def scan_and_run_barcode(self):
         print("ENTERING OPERATION MODE")
-        while True:
-            scanned_barcode = input("Scan barcode: ")
+        running = True
+        while running:
+            scanned_barcode = input("Scan barcode (s to stop): ")
             toolpath_db = self.load_toolpath_db()
-
-            if scanned_barcode in toolpath_db:
+            if scanned_barcode == 's':
+                self.eva_pair.stop_toolpath_pair()
+            elif scanned_barcode in toolpath_db:
                 tp_dict = toolpath_db.get(scanned_barcode)
                 self.eva_pair.stop_toolpath_pair()
                 self.set_pair_toolpath(tp_dict)
+                self.eva_pair.send_home_pair()
                 self.eva_pair.run_toolpath_pair()
             elif scanned_barcode not in toolpath_db:
+                print("BARCODE NOT IN DATABASE")
+                self.eva_pair.stop_toolpath_pair()
                 self.assign_barcode(scanned_barcode)
 
     def assign_barcode(self, scanned_barcode: str = None):
         if not scanned_barcode:
-            input("Scan barcode: ")
+            scanned_barcode = input("Scan barcode: ")
         toolpath_db = self.load_toolpath_db()
 
         if scanned_barcode not in toolpath_db:
