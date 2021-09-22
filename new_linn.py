@@ -7,6 +7,7 @@ import eva_pair
 
 class LinnTwinRobotApp:
     """ Main running application class """
+
     def __init__(self, robot_left: dict, robot_right: dict):
         self.robot_left = Eva(robot_left['ip'], robot_left['token'])
         self.robot_right = Eva(robot_right['ip'], robot_right['token'])
@@ -60,13 +61,14 @@ class LinnTwinRobotApp:
             self.input_toolpath_name(self.robot_order[left_right], left_right, toolpath_num)
         return barcode_toolpaths
 
-    def scan_and_run_barcode(self):
+    def scan_and_run_barcode(self, headerless: bool = False):
         """ Normal operation mode, scan, stop, run, add additional barcodes """
         print("ENTERING OPERATION MODE")
+        default_toolpath = {'left': 1, 'right': 1}  # You would change this to the default toolpath number
         while True:
-            scanned_barcode = input("Scan barcode (s to stop): ")
+            scanned_barcode = input("Scan barcode (stop to halt): ")
             toolpath_db = self.load_toolpath_db()
-            if scanned_barcode == 's':
+            if scanned_barcode == 'stop':
                 self.eva_pair.stop_toolpath_pair()
             elif scanned_barcode in toolpath_db:
                 tp_dict = toolpath_db.get(scanned_barcode)
@@ -74,7 +76,13 @@ class LinnTwinRobotApp:
                 self.set_pair_toolpath(tp_dict)
                 self.eva_pair.send_home_pair()
                 self.eva_pair.run_toolpath_pair()
-            elif scanned_barcode not in toolpath_db:
+            elif scanned_barcode not in toolpath_db and headerless:
+                print("BARCODE NOT IN DATABASE - RUNNING DEFAULT")
+                self.eva_pair.stop_toolpath_pair()
+                self.set_pair_toolpath(default_toolpath)
+                self.eva_pair.send_home_pair()
+                self.eva_pair.run_toolpath_pair()
+            elif scanned_barcode not in toolpath_db and not headerless:
                 print("BARCODE NOT IN DATABASE")
                 self.eva_pair.stop_toolpath_pair()
                 self.assign_barcode(scanned_barcode)
