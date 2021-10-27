@@ -1,4 +1,4 @@
-=== Paint Plant Robot System ===
+# Paint Plant Robot System
 
 A pair of Eva Robots https://automata.tech/about-eva/
 
