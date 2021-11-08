@@ -3,8 +3,9 @@
 import pickle
 from evasdk import Eva
 import eva_pair
+import logging
 
-
+logging.basicConfig(filename='eva.log', encoding='utf-8', level=logging.DEBUG)
 class LinnTwinRobotApp:
     """ Main running application class """
 
@@ -63,29 +64,43 @@ class LinnTwinRobotApp:
 
     def scan_and_run_barcode(self, headerless: bool = False):
         """ Normal operation mode, scan, stop, run, add additional barcodes """
+        logging.info("ENTERING OPERATION MODE")
         print("ENTERING OPERATION MODE")
         default_toolpath = {'left': 1, 'right': 1}  # You would change this to the default toolpath number
         while True:
             scanned_barcode = input("Scan barcode (stop to halt): ")
             toolpath_db = self.load_toolpath_db()
             if scanned_barcode == 'stop':
-                self.eva_pair.stop_toolpath_pair()
+                try:
+                    self.eva_pair.stop_toolpath_pair()
+                except Exception as err:
+                    logging.error(err)
             elif scanned_barcode in toolpath_db:
-                tp_dict = toolpath_db.get(scanned_barcode)
-                self.eva_pair.stop_toolpath_pair()
-                self.set_pair_toolpath(tp_dict)
-                self.eva_pair.send_home_pair()
-                self.eva_pair.run_toolpath_pair()
+                try:
+                    tp_dict = toolpath_db.get(scanned_barcode)
+                    self.eva_pair.stop_toolpath_pair()
+                    self.set_pair_toolpath(tp_dict)
+                    self.eva_pair.send_home_pair()
+                    self.eva_pair.run_toolpath_pair()
+                except Exception as err:
+                    logging.error(err)
             elif scanned_barcode not in toolpath_db and headerless:
                 print("BARCODE NOT IN DATABASE - RUNNING DEFAULT")
-                self.eva_pair.stop_toolpath_pair()
-                self.set_pair_toolpath(default_toolpath)
-                self.eva_pair.send_home_pair()
-                self.eva_pair.run_toolpath_pair()
+                logging.info("BARCODE NOT IN DATABASE - RUNNING DEFAULT")
+                try:
+                    self.eva_pair.stop_toolpath_pair()
+                    self.set_pair_toolpath(default_toolpath)
+                    self.eva_pair.send_home_pair()
+                    self.eva_pair.run_toolpath_pair()
+                except Exception as err:
+                    logging.error(err)
             elif scanned_barcode not in toolpath_db and not headerless:
                 print("BARCODE NOT IN DATABASE")
-                self.eva_pair.stop_toolpath_pair()
-                self.assign_barcode(scanned_barcode)
+                try:
+                    self.eva_pair.stop_toolpath_pair()
+                    self.assign_barcode(scanned_barcode)
+                except Exception as err:
+                    logging.error(err)
 
     def assign_barcode(self, scanned_barcode: str = None):
         """ Scan and assign toolpaths to barcodes """
