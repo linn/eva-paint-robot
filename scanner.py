@@ -1,4 +1,4 @@
-#!python
+#!/usr/bin/env python3
 
 # Mostly lifted from https://gist.github.com/michalfapso/1755e8a35bb83720c2559ce8ffde5f85
 
@@ -81,89 +81,94 @@ CHARMAP = {
         evdev.ecodes.KEY_SPACE: [' ', ' '],
         }
 
-class BarcodeReader:
-    def barcode_reader_evdev(dev):
-        barcode_string_output = ''
-        # barcode can have a 'shift' character; this switches the character set
-        # from the lower to upper case variant for the next character only.
-        shift_active = False
-        print("in reader")
-        for event in dev.read_loop():
-            print("in loop")
+def barcode_reader_evdev(dev):
+    barcode_string_output = ''
+    # barcode can have a 'shift' character; this switches the character set
+    # from the lower to upper case variant for the next character only.
+    shift_active = False
+    print("in reader")
+    for event in dev.read_loop():
+        print("in loop")
 
-            #print('categorize:', evdev.categorize(event))
-            #print('typeof:', type(event.code))
-            #print("event.code:", event.code)
-            #print("event.type:", event.type)
-            #print("event.value:", event.value)
-            #print("event:", event)
+        #print('categorize:', evdev.categorize(event))
+        #print('typeof:', type(event.code))
+        #print("event.code:", event.code)
+        #print("event.type:", event.type)
+        #print("event.value:", event.value)
+        #print("event:", event)
 
-            if event.code == evdev.ecodes.KEY_ENTER and event.value == VALUE_DOWN:
-                #print('KEY_ENTER -> return')
-                # all barcodes end with a carriage return
-                return barcode_string_output
-            elif event.code == evdev.ecodes.KEY_LEFTSHIFT or event.code == evdev.ecodes.KEY_RIGHTSHIFT:
-                #print('SHIFT')
-                shift_active = event.value == VALUE_DOWN
-            elif event.value == VALUE_DOWN:
-                ch = CHARMAP.get(event.code, ERROR_CHARACTER)[1 if shift_active else 0]
-                #print('ch:', ch)
-                # if the charcode isn't recognized, use ?
-                barcode_string_output += ch
+        if event.code == evdev.ecodes.KEY_ENTER and event.value == VALUE_DOWN:
+            #print('KEY_ENTER -> return')
+            # all barcodes end with a carriage return
+            return barcode_string_output
+        elif event.code == evdev.ecodes.KEY_LEFTSHIFT or event.code == evdev.ecodes.KEY_RIGHTSHIFT:
+            #print('SHIFT')
+            shift_active = event.value == VALUE_DOWN
+        elif event.value == VALUE_DOWN:
+            ch = CHARMAP.get(event.code, ERROR_CHARACTER)[1 if shift_active else 0]
+            #print('ch:', ch)
+            # if the charcode isn't recognized, use ?
+            barcode_string_output += ch
 
-    @staticmethod
-    def list_devices():
-        # This tickles asyncio in some way that prevents Python from exploding when ctrl+c has been pressed
-        devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+def list_devices():
+    # This tickles asyncio in some way that prevents Python from exploding when ctrl+c has been pressed
+    devices = [evdev.InputDevice(path) for path in evdev.list_devices()]
+    print("--------------------------------------------------")
+    for device in devices:
+        print('device:', device)
+        print('info  :', device.info)
+        print('path  :', device.path)
+        print('name  :', device.name)
+        print('phys  :', device.phys)
         print("--------------------------------------------------")
-        for device in devices:
-            print('device:', device)
-            print('info  :', device.info)
-            print('path  :', device.path)
-            print('name  :', device.name)
-            print('phys  :', device.phys)
-            print("--------------------------------------------------")
-            # print(VENDOR_PRODUCT)
-            for vp in VENDOR_PRODUCT:
-                # print("vp1 is " + str(vp[1]))
-                # print("device.info.product is " + str(device.info.product))
-                if device.info.vendor == vp[0] and device.info.product == vp[1]:
-                    print("Returning scanning devices")
-                    return device
-        print("No input device found")
-        return None
+        # print(VENDOR_PRODUCT)
+        for vp in VENDOR_PRODUCT:
+            # print("vp1 is " + str(vp[1]))
+            # print("device.info.product is " + str(device.info.product))
+            if device.info.vendor == vp[0] and device.info.product == vp[1]:
+                print("Returning scanning devices")
+                return device
+    print("No input device found")
+    return None
 
-    @staticmethod
-    def get_input():
-        dev = evdev.InputDevice('/dev/input/by-id/usb-Apple__Inc_Apple_Keyboard-event-kbd')
-        print("Capturing from", dev.path)
-        dev.grab()
+def wait_for_input():
+    print("in wait_for_input")
+    dev = evdev.InputDevice('/dev/input/by-id/usb-Apple__Inc_Apple_Keyboard-event-kbd')
+    print("Capturing from", dev.path)
+    dev.grab()
 
-        try:
-            while True:
-                upcnumber = barcode_reader_evdev(dev)
-                print("Scanned number is : " + upcnumber)
-        except KeyboardInterrupt:
-            logging.debug('Keyboard interrupt')
-        except Exception as err:
-            logging.error(err)
+    try:
+        while True:
+            upcnumber = barcode_reader_evdev(dev)
+            print("Scanned number is : " + upcnumber)
+    except KeyboardInterrupt:
+        logging.debug('Keyboard interrupt')
+    except Exception as err:
+        logging.error(err)
+    dev.ungrab()        
 
+def main():
+    # reader = BarcodeReader()
+    list_devices()
 
-    if __name__ == '__main__':
-        
-        list_devices()
-        # FIXME This should be in the environment
-        dev = evdev.InputDevice('/dev/input/by-id/usb-Apple__Inc_Apple_Keyboard-event-kbd')
-        print("Capturing from", dev.path)
-        dev.grab()
+    # list_devices()
+    # FIXME This should be in the environment
+    dev = evdev.InputDevice('/dev/input/by-id/usb-Apple__Inc_Apple_Keyboard-event-kbd')
+    print("Capturing from", dev.path)
+    dev.grab()
 
-        try:
-            while True:
-                upcnumber = barcode_reader_evdev(dev)
-                print("Scanned number is : " + upcnumber)
-        except KeyboardInterrupt:
-            logging.debug('Keyboard interrupt')
-        except Exception as err:
-            logging.error(err)
+    try:
+        while True:
+            print("here?")
+            upcnumber = barcode_reader_evdev(dev)
+            print("Scanned number is : " + upcnumber)
+    except KeyboardInterrupt:
+        logging.debug('Keyboard interrupt')
+    except Exception as err:
+        print("wtf")
+        logging.error(err)
 
-        dev.ungrab()
+    dev.ungrab()
+
+if __name__ == '__main__':
+    main()
