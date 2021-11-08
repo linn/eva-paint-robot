@@ -142,6 +142,7 @@ def wait_for_input():
         while True:
             upcnumber = barcode_reader_evdev(dev)
             print("Scanned number is : " + upcnumber)
+            return upcnumber
     except KeyboardInterrupt:
         logging.debug('Keyboard interrupt')
     except Exception as err:
