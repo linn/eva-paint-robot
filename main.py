@@ -18,6 +18,8 @@ if __name__ == '__main__':
     robot_2_details = {'ip': os.environ['ROBOT2IP'], 'token': os.environ['ROBOT2API']}
     app = LinnTwinRobotApp(robot_1_details, robot_2_details)
     if '--headerless' in sys.argv:
+        print("Running in headerless mode")
+        print("Check the eva.log file for any output")
         app.scan_and_run_barcode(headerless=True)
     else:
         app.run()
