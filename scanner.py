@@ -12,12 +12,13 @@
 # This implementation doesn't directly decode hidraw stream, but uses
 # evdev and grabs the device, so the code arrives only in this script
 # and not in any active input window.
-# 
+#
 # Also, it uses a list of USB vendor:product to identify the device,
 # so that you don't have to set the dev path.
 
 import evdev
 import logging
+import os
 
 ERROR_CHARACTER = '?'
 VALUE_UP = 0
@@ -133,7 +134,7 @@ def list_devices():
 
 def wait_for_input():
     print("in wait_for_input")
-    dev = evdev.InputDevice('/dev/input/by-id/usb-Apple__Inc_Apple_Keyboard-event-kbd')
+    dev = evdev.InputDevice(os.environ['BARCODEREADER1'])
     print("Capturing from", dev.path)
     dev.grab()
 
@@ -145,15 +146,13 @@ def wait_for_input():
         logging.debug('Keyboard interrupt')
     except Exception as err:
         logging.error(err)
-    dev.ungrab()        
+    dev.ungrab()
 
 def main():
     # reader = BarcodeReader()
     list_devices()
 
-    # list_devices()
-    # FIXME This should be in the environment
-    dev = evdev.InputDevice('/dev/input/by-id/usb-Apple__Inc_Apple_Keyboard-event-kbd')
+    dev = evdev.InputDevice(os.environ['BARCODEREADER1'])
     print("Capturing from", dev.path)
     dev.grab()
 
