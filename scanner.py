@@ -87,9 +87,7 @@ def barcode_reader_evdev(dev):
     # barcode can have a 'shift' character; this switches the character set
     # from the lower to upper case variant for the next character only.
     shift_active = False
-    print("in reader")
     for event in dev.read_loop():
-        print("in loop")
 
         #print('categorize:', evdev.categorize(event))
         #print('typeof:', type(event.code))
@@ -133,9 +131,7 @@ def list_devices():
     return None
 
 def wait_for_input():
-    print("in wait_for_input")
     dev = evdev.InputDevice(os.environ['BARCODEREADER1'])
-    print("Capturing from", dev.path)
     dev.grab()
 
     try:
