@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# FIXME Should this not be python3 like new_linn.py ?
 from new_linn import LinnTwinRobotApp
 import sys
 """ Main file to run application """
@@ -20,4 +20,3 @@ if __name__ == '__main__':
         app.scan_and_run_barcode(headerless=True)
     else:
         app.run()
-
