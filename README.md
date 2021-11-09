@@ -7,8 +7,15 @@ IP and API key defined in /etc/environment on the host controller machine
 ## Installation
 Install the requisite python modules with:
 
-```python3 -m pip install -r requirements.txt```
+```
+python3 -m pip install -r requirements.txt
+```
 
-Copy eva-paint-plant.service to /etc/systemd/system/
+Install the systemctl startup/shutdown script with:
 
-Execute sudo systemctl daemon-reload ; sudo systemctl enable eva-paint-plant.service --now
+```
+sudo cp eva-paint-robot.service /etc/systemd/system/
+
+sudo systemctl daemon-reload
+sudo systemctl enable eva-paint-robot.service --now
+```
