@@ -5,7 +5,7 @@ After=multi-user.target
 [Service]
 Type=simple
 Restart=always
-ExecStart=/usr/bin/python3 /home/pi/eva-paint-plant/main.py --headerless
+ExecStart=/usr/local/bin/python3.9 /home/pi/eva-paint-robot/main.py --headerless
 
 [Install]
 WantedBy=multi-user.target
