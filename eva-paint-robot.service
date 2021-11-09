@@ -1,0 +1,17 @@
+[Unit]
+Description=Eva Paint Robot service
+After=multi-user.target
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/home/pi/eva-paint-robot/main.py --headerless
+StandardOutput=syslog
+StandardError=syslog
+WorkingDirectory=/home/pi/eva-paint-robot/
+User=pi
+Restart=always
+EnvironmentFile=/home/pi/eva-paint-robot/env
+
+[Install]
+WantedBy=multi-user.target

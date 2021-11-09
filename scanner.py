@@ -20,6 +20,8 @@ import evdev
 import logging
 import os
 
+logging.basicConfig(filename='eva.log', encoding='utf-8', level=logging.DEBUG)
+
 ERROR_CHARACTER = '?'
 VALUE_UP = 0
 VALUE_DOWN = 1
