@@ -11,7 +11,7 @@ StandardError=syslog
 WorkingDirectory=/home/pi/eva-paint-robot/
 User=pi
 Restart=always
-EnvironmentFile=/home/pi/eva-paint-robot/env
+EnvironmentFile=/home/pi/eva-paint-robot/.env
 
 [Install]
 WantedBy=multi-user.target

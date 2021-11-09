@@ -2,8 +2,10 @@
 
 A pair of Eva Robots https://automata.tech/about-eva/
 
-IP and API key defined in /etc/environment on the host controller machine
-
+IP, API key, and Barcode Reader path are defined in .env on the host controller machine, in the directory
+```
+/home/pi/eva-paint-robot/
+```
 ## Installation
 Install the requisite python modules with:
 
