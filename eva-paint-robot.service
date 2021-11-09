@@ -5,7 +5,13 @@ After=multi-user.target
 [Service]
 Type=simple
 Restart=always
-ExecStart=/usr/local/bin/python3.9 /home/pi/eva-paint-robot/main.py --headerless
+ExecStart=/home/pi/eva-paint-robot/main.py --headerless
+StandardOutput=syslog
+StandardError=syslog
+WorkingDirectory=/home/pi/eva-paint-robot/
+User=pi
+Restart=always
+EnvironmentFile=/home/pi/eva-paint-robot/env
 
 [Install]
 WantedBy=multi-user.target
