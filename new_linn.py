@@ -3,9 +3,11 @@
 import pickle
 from evasdk import Eva
 import eva_pair
+import scanner
 import logging
 
 logging.basicConfig(filename='eva.log', encoding='utf-8', level=logging.DEBUG)
+
 class LinnTwinRobotApp:
     """ Main running application class """
 
@@ -68,7 +70,9 @@ class LinnTwinRobotApp:
         print("ENTERING OPERATION MODE")
         default_toolpath = {'left': 1, 'right': 1}  # You would change this to the default toolpath number
         while True:
-            scanned_barcode = input("Scan barcode (stop to halt): ")
+            # scanned_barcode = input("Scan barcode (stop to halt): ")
+            print("Scan barcode: ", end="")
+            scanned_barcode = scanner.wait_for_input()
             toolpath_db = self.load_toolpath_db()
             if scanned_barcode == 'stop':
                 try:
@@ -105,7 +109,9 @@ class LinnTwinRobotApp:
     def assign_barcode(self, scanned_barcode: str = None):
         """ Scan and assign toolpaths to barcodes """
         if not scanned_barcode:
-            scanned_barcode = input("Scan barcode: ")
+            # scanned_barcode = input("Scan barcode: ")
+            print("Scan barcode: ", end="")
+            scanned_barcode = scanner.wait_for_input()
         toolpath_db = self.load_toolpath_db()
 
         if scanned_barcode not in toolpath_db:
