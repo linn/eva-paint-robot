@@ -3,6 +3,8 @@
 from new_linn import LinnTwinRobotApp
 import os
 import sys
+import dotenv
+
 """ Main file to run application """
 
 """
