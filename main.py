@@ -1,4 +1,5 @@
-# FIXME Should this not be python3 like new_linn.py ?
+#!/usr/bin/env python3
+
 from new_linn import LinnTwinRobotApp
 import os
 import sys
