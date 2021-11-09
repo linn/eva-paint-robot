@@ -8,7 +8,7 @@ IP and API key defined in /etc/environment on the host controller machine
 Install the requisite python modules with:
 
 ```
-python3 -m pip install -r requirements.txt
+sudo pipenv install
 ```
 
 Install the systemctl startup/shutdown script with:
