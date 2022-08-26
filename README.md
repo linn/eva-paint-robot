@@ -58,3 +58,31 @@ sudo cp eva-paint-robot.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable eva-paint-robot.service --now
 ```
+
+## Observing logs
+
+The paint robot service operates in headless mode when running in day to day operations.
+This allows it to recieve barcode events and act upon them without any other interaction required.
+To check the behaviour of the system whilst it is running, logs are output to the following location.
+
+```/home/pi/eva-paint-robot/eva.log```
+
+It is possible to 'tail' the logs with a command such as this:
+
+```tail -n 50 -f /home/pi/eva-paint-robot/eva.log```
+
+This will show the last 50 lines of the log file, including anything new that is generated. Stop the command with ctrl+c
+
+## Updating the Pi robot code
+
+If this source code has been modified and commit to Git externally, such as via a workstation or laptop, it must also be synchronised down to the Pi.
+
+SSH to the Raspberry Pi, and cd to the ```/home/pi/eva-paint-robot``` directory
+
+Stop the robot system with ```sudo systemctl stop eva-paint-robot.service```
+
+Execute ```git pull```, and the source code will be updated from the copy in Github.
+
+Use ```git status``` to view the status of the filesystem compared to what source control expects. There should be no major differences.
+
+Start the robot system with ```sudo systemctl start eva-paint-robot.service```
