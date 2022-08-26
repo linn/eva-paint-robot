@@ -6,6 +6,17 @@ IP, API key, and Barcode Reader path are defined in .env on the host controller 
 ```
 /home/pi/eva-paint-robot/
 ```
+
+## Logging in to the host controller
+
+The system is operated by an industrial Raspberry Pi. SSH is available, and can be used from the production network.
+
+On a Mac or Linux machine, use the terminal and ```ssh``` to the device IP address.
+
+On Windows, use Putty from https://www.chiark.greenend.org.uk/~sgtatham/putty/ - this has already been installed on the Metalwork workstations.
+
+Web interfaces to the robot arms and Raspberry Pi controller are also available.
+
 ## Assigning barcodes
 
 Log in to the host controller machine and run the following command:
@@ -15,8 +26,12 @@ sudo systemctl stop eva-paint-robot
 
 This releases the exclusive lock on the barcode reader.
 
-Within the eva-paint-robot directory, run the command
-```./main.py``` to start the barcode assigning process.
+Within the eva-paint-robot directory, run following command
+to start the barcode assigning process.
+
+```/usr/bin/python3 /home/pi/eva-paint-robot/main.py```
+
+It will take a moment to load, and then it will walk you through the process.
 
 When complete, press ctrl-c to exit the program.
 
