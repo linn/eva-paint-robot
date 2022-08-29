@@ -5,6 +5,7 @@ from evasdk import Eva
 import eva_pair
 import scanner
 import logging
+import sys
 
 logging.basicConfig(filename='eva.log', encoding='utf-8', level=logging.DEBUG)
 
@@ -24,7 +25,8 @@ class LinnTwinRobotApp:
         toolpath_list_name_only = []
         print(f"Available toolpaths - Number to enter to set toolpath for {left_right} robot")
         for toolpaths in eva.toolpaths_list():
-            print(f"{toolpaths['name']}    -    {toolpaths['id']}")
+            print(f"{toolpaths['name']
+┌─(~/src/Linn/eva-paint-robot)─────────────}    -    {toolpaths['id']}")
             toolpath_list_name_only.append(toolpaths['name'])
 
     @staticmethod
