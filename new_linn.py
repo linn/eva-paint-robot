@@ -137,5 +137,6 @@ class LinnTwinRobotApp:
                 self.scan_and_run_barcode()
             elif ass_or_run == 'n':
                 print("Exiting")
+                sys.exit()
             else:
                 print(f"Unexpected input: {ass_or_run}")
