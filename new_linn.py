@@ -128,10 +128,14 @@ class LinnTwinRobotApp:
     def run(self):
         """ Initial startup loop """
         while True:
-            ass_or_run = input("Do you wish to assign barcodes? (y/n)").lower()
+            ass_or_run = input("Do you wish to assign more barcodes [yes, no, interactive]? (y/n/i)").lower()
             if ass_or_run == 'y':
                 self.assign_barcode()
-            elif ass_or_run == 'n':
+            elif ass_or_run == 'i':
+                print("Entering interactive operation")
+                print("Press CTRL+c a few times to exit")
                 self.scan_and_run_barcode()
+            elif ass_or_run == 'n':
+                print("Exiting")
             else:
                 print(f"Unexpected input: {ass_or_run}")
